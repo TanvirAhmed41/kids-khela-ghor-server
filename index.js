@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 
@@ -20,21 +20,52 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  maxPoolSize: 10,
 });
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
 
-    await client.connect();
+    client.connect((error) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+    });
 
     const allAnimalToysCollection = client.db("AnimalDb").collection("Animal");
 
     app.get("/allToys", async (req, res) => {
-      const cursor = allAnimalToysCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
+      let query = {};
+      if(req.query?.email){
+        query = {sellerEmail: req.query.email}
+      }
+      const result = await allAnimalToysCollection.find(query).sort({price: 1}).limit(20).toArray();
+      res.send(result)
     });
+
+    
+
+
+
+
+    app.post('/addtoys', async (req, res) => {
+      const body = req.body;
+      const result = await allAnimalToysCollection.insertOne(body);
+      res.send(result);
+    })
+
+    app.delete('/allToys/:id', async(req,res)=>{
+      const id = req.params.id
+      const query = { _id: new ObjectId(id)}
+      const result  = await allAnimalToysCollection.deleteOne(query)
+      res.send(result)
+  })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
