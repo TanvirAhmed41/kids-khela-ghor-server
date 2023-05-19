@@ -38,6 +38,16 @@ async function run() {
 
     const allAnimalToysCollection = client.db("AnimalDb").collection("Animal");
 
+    const indexKeys = { name : 1};
+    const indexOptions = {name : "price"};
+    allAnimalToysCollection.createIndex(indexKeys, indexOptions)
+
+    app.get('/toySearchByName/:text', async (req, res) =>{
+      const searchToy = req.params.text ;
+      const result = await allAnimalToysCollection.find({name:{$regex: searchToy, $options: "i"}}).toArray();
+      res.send(result);
+    })
+
     app.get("/allToys", async (req, res) => {
       let query = {};
       if(req.query?.email){
