@@ -56,7 +56,13 @@ async function run() {
       const result = await allAnimalToysCollection.find(query).sort({price: 1}).limit(20).toArray();
       res.send(result)
     });
-
+    
+    app.get('/categories',async(req,res)=>{
+      const category =req.query.category
+      const query = { subCategory: category };
+      const result = await allAnimalToysCollection .find(query).toArray()
+      res.send(result)
+    })
     
 
 
